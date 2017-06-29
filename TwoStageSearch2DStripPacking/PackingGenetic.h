@@ -7,11 +7,12 @@ class PackingGenetic :
     public PackingBase
 {
 public:
-    PackingGenetic(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking);
+    PackingGenetic(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking, std::chrono::microseconds runtime = std::chrono::seconds(10));
+    PackingGenetic(double sheetWidth, const std::vector<Rectangle*>& rectangles, const std::vector<PackingList>& bestPackings, std::chrono::microseconds runtime = std::chrono::seconds(10));
+
     ~PackingGenetic();
 
-    // Í¨¹ý PackingBase ¼Ì³Ð
-    virtual void operator()(PackingList &result, std::chrono::microseconds runtime = std::chrono::seconds(10)) override;
+    virtual void operator()(PackingList &result, std::vector<PackingList> &out);
 
 private:
     // Ñ¡Ôñ

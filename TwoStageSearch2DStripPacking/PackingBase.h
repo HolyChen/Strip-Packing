@@ -9,10 +9,10 @@
 class PackingBase
 {
 public:
-    PackingBase(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking);
+    PackingBase(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking, std::chrono::microseconds runtime = std::chrono::seconds(10));
     ~PackingBase();
     // 搜索方法，函子
-    virtual void operator()(PackingList &result, std::chrono::microseconds runtime = std::chrono::seconds(10)) = 0;
+    virtual void operator()(PackingList &result, std::vector<PackingList> &out) = 0;
 protected:
     // 启发式Packing算法
     // 输入：Packing序列

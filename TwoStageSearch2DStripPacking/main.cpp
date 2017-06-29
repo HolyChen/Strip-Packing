@@ -75,7 +75,7 @@ int main()
                     std::cout << "------------- Best Packing: -------------" << std::endl;
                 }
 				std::cout << n << " " << stripWidth << " " << packingList.h << std::endl;
-				for (auto&& packing : packingList.assgins)
+				for (auto&& packing : packingList.assigns)
 				{
 					/*std::cout << "(" << packing.mX << ", " << packing.mY << ")"
 						<< " <-- " << "(" << packing.mWidth << ", " << packing.mHeight << ")" << std::endl;*/

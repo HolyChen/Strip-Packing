@@ -5,8 +5,8 @@
 
 
 PackingSimulatedAnnealing::PackingSimulatedAnnealing(
-    double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking)
-    : PackingBase(sheetWidth, rectangles, bestPacking)
+    double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking, std::chrono::microseconds runtime)
+    : PackingBase(sheetWidth, rectangles, bestPacking, runtime)
 {
 }
 
@@ -15,9 +15,8 @@ PackingSimulatedAnnealing::~PackingSimulatedAnnealing()
 {
 }
 
-void PackingSimulatedAnnealing::operator()(PackingList& result, std::chrono::microseconds runtime)
+void PackingSimulatedAnnealing::operator()(PackingList& result, std::vector<PackingList> &out)
 {
-    m_maxRunTime = runtime;
     // 初始温度设置为所有的矩形的面积和除以材料板的宽度，即压紧时的高度
     double temperature = 0.0;
     {
@@ -81,26 +80,8 @@ void PackingSimulatedAnnealing::operator()(PackingList& result, std::chrono::mic
         }
         // 衰退方式为每次变更为上次一的0.9
         temperature *= 0.9;
-        /*
-        // 多启动
-        std::uniform_int_distribution<int> uIntD(0, 2);
-        int type = uIntD(rdeg);
-        switch (type)
-        {
-        case 0:         // 保持原样
-            break;
-        case 1:         // 转化为按边长排序的序列
-            std::sort(curSearchList.begin(), curSearchList.end(),
-                static_cast<bool(*)(const Rectangle::_PRectangle&, const Rectangle::_PRectangle&)>(Rectangle::comparatorPerimeter));
-            break;
-        case 2:         // 转化为按宽度排序的序列
-            std::sort(curSearchList.begin(), curSearchList.end(),
-                static_cast<bool(*)(const Rectangle::_PRectangle&, const Rectangle::_PRectangle&)>(Rectangle::compratorWidth));
-            break;
-        default:
-            break;
-        }
-        */
     }
     result = m_bestPacking;
+    out.clear();
+    out.push_back(heuristicPacking(curSearchList));
 }

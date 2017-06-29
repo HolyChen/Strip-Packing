@@ -142,13 +142,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="PackingBase.h" />
     <ClInclude Include="PackingGenetic.h" />
     <ClInclude Include="PackingList.h" />
-    <ClInclude Include="Heap.h" />
     <ClInclude Include="Packing.h" />
     <ClInclude Include="PackingLocalSearch.h" />
     <ClInclude Include="PackingSimulatedAnnealing.h" />
@@ -174,6 +170,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

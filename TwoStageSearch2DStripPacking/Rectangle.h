@@ -35,6 +35,18 @@ public:
 		return (x1.width) < (x2.width);
 	}
 
+    // 按照面积降序
+    static bool comparatorArea(const Rectangle& x1, const Rectangle& x2)
+    {
+        return (x1.width * x1.height) < (x2.width * x2.height);
+    }
+
+    // 按照高度降序
+    static bool compratorHeight(const Rectangle& x1, const Rectangle& x2)
+    {
+        return (x1.height) < (x2.height);
+    }
+
 	// 两个排序比较函数的指针版本
 	// 按照周长降序
 	static bool comparatorPerimeter(const _PRectangle& x1, const _PRectangle& x2)
@@ -47,5 +59,17 @@ public:
 	{
 		return (x1->width) < (x2->width);
 	}
+
+    // 按照面积降序
+    static bool comparatorArea(const _PRectangle& x1, const _PRectangle& x2)
+    {
+        return (x1->width * x1->height) < (x2->width * x2->height);
+    }
+
+    // 按照高度降序
+    static bool compratorHeight(const _PRectangle& x1, const _PRectangle& x2)
+    {
+        return (x1->height) < (x2->height);
+    }
 };
 

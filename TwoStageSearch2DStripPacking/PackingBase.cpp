@@ -13,9 +13,9 @@
 #include "Space.h"
 #include "SpaceManager.h"
 
-PackingBase::PackingBase(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking)
+PackingBase::PackingBase(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking, std::chrono::microseconds runtime)
     : m_sheetWidth(sheetWidth), m_nRect(rectangles.size()), m_rectangles(rectangles), m_bestPacking(bestPacking),
-      m_bestSearchList(bestPacking.searchList)
+      m_bestSearchList(bestPacking.searchList), m_maxRunTime(runtime)
 {
     m_bestPacking = heuristicPacking(m_bestSearchList);
     m_beginTime = std::chrono::steady_clock::now();
@@ -55,7 +55,7 @@ PackingList PackingBase::heuristicPacking(const std::vector<Rectangle*>& searchL
         {
             packingList.h = space->y + rectangle->height;
         }
-        packingList.assgins.push_back(spaces.pack(spaceIndex, rectangle));
+        packingList.assigns.push_back(spaces.pack(spaceIndex, rectangle));
     }
 
     packingList.searchList = searchListSrc;
@@ -78,16 +78,50 @@ Rectangle* PackingBase::popHighestScoreRectangle(std::list<Rectangle*>& searchLi
 {
     auto highestScored = searchList.begin();
     int highestScore = std::numeric_limits<int>::min();
-    int curScore = 0;
-    for (auto iter = searchList.begin(); iter != searchList.end(); iter++)
+    int *scores = new int[searchList.size()];
+
     {
-        curScore = judge(*iter, space);
-        if (curScore > highestScore)
+        int i = 0;
+        for (auto iter = searchList.begin(); iter != searchList.end(); iter++)
         {
-            highestScore = curScore;
-            highestScored = iter;
+            scores[i] = judge(*iter, space);
+            if (scores[i] > highestScore)
+            {
+                highestScore = scores[i];
+                highestScored = iter;
+            }
+            i++;
         }
     }
+
+    // 最小浪费策略
+    // 如果评分为2或1，那么选择一个高度相等，高度尽可能大的矩形
+    if (highestScore == 2 || highestScore == 1)
+    {
+        int i = 0;
+        for (auto iter = searchList.begin(); iter != searchList.end(); iter++)
+        {
+            if (highestScore == scores[i] && (*iter)->width > (*highestScored)->width)
+            {
+                highestScored = iter;
+            }
+            i++;
+        }
+    }
+    // 如果评分为0，那么选择一个宽和高都不小于它的
+    else if (highestScore == 0)
+    {
+        int i = 0;
+        for (auto iter = searchList.begin(); iter != searchList.end(); iter++)
+        {
+            if (highestScore == scores[i] && (*iter)->width >= (*highestScored)->width && (*iter)->height >= (*highestScored)->height)
+            {
+                highestScored = iter;
+            }
+            i++;
+        }
+    }
+
 
     Rectangle *toReturn = nullptr;
     if (highestScored != searchList.end())
@@ -95,6 +129,7 @@ Rectangle* PackingBase::popHighestScoreRectangle(std::list<Rectangle*>& searchLi
         toReturn = *highestScored;
         searchList.erase(highestScored);
     }
+    delete[] scores;
     return toReturn;
 }
 

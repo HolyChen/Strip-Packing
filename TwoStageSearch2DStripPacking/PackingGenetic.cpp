@@ -3,14 +3,15 @@
 
 #include <algorithm>
 #include <memory>
+#include <set>
 
 // 交配概率
 const double PackingGenetic::PROPORTION_CROSS = 0.3;
 // 变异概率
 const double PackingGenetic::PROPORTION_MUTATE = 0.1;
 
-PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking)
-    : PackingBase(sheetWidth, rectangles, bestPacking)
+PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking, std::chrono::microseconds runtime)
+    : PackingBase(sheetWidth, rectangles, bestPacking, runtime)
 {
     // 初始化种群
     // 将种群数量设置为矩形数量的2倍取整
@@ -19,19 +20,40 @@ PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>&
 
     // 初始化种群的个体
     // 种群的1/4的个体（不少于一个）设置为之前已经找到的最佳搜索序列，剩余的3/4则使用对改最佳搜索序列的随机变异结果进行初始化
-
     int numOfQuarterPop = std::max(1, mNumOfPop / 4);
-    for (int i = 0; i < numOfQuarterPop; i++)
+    for (int i = 0; i < numOfQuarterPop && std::chrono::steady_clock::now() - m_beginTime < m_maxRunTime; i++)
     {
         mPopulation.push_back(m_bestPacking);
     }
-    for (int i = numOfQuarterPop; i < mNumOfPop; i++)
+    for (int i = numOfQuarterPop; i < mNumOfPop && std::chrono::steady_clock::now() - m_beginTime < m_maxRunTime; i++)
     {
         mPopulation.push_back(searchListMutate(m_bestPacking, std::chrono::high_resolution_clock().now().time_since_epoch().count()));
     }
+}
 
-    // 更新种群中最好的个体
-    calcBestOne();
+PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>& rectangles, const std::vector<PackingList>& bestPackings, std::chrono::microseconds runtime)
+    : PackingBase(sheetWidth, rectangles, bestPackings.front(), runtime)
+{
+    // 初始化种群
+    // 将种群数量设置为矩形数量的2倍取整，如果传入的bestPackings的数量比种群数量的1/5大，则设为bestPackngs大小的5倍
+    mNumOfHalfPop = std::max(std::max(1, (int)std::round(m_nRect) / 2), (int)std::round((bestPackings.size() / 2.5)));
+    mNumOfPop = mNumOfHalfPop * 2;
+
+    // 初始化种群的个体
+    // 首先加入1次所有的bestPackings的个体，剩余部分则设置为以0.3的概率BestPackings前5个个体的随机变异
+    mPopulation.insert(mPopulation.begin(), bestPackings.cbegin(), bestPackings.cend());
+    int nLeft = mPopulation.size() - bestPackings.size();
+
+    std::default_random_engine eg(std::chrono::high_resolution_clock().now().time_since_epoch().count());
+    std::bernoulli_distribution dis(0.3);
+
+    for (int i = 0; i < nLeft && std::chrono::steady_clock::now() - m_beginTime < m_maxRunTime; i++)
+    {
+        if (dis(eg))
+        {
+            mPopulation.push_back(searchListMutate(bestPackings[i % 5], std::chrono::high_resolution_clock().now().time_since_epoch().count()));
+        }
+    }
 }
 
 
@@ -39,9 +61,10 @@ PackingGenetic::~PackingGenetic()
 {
 }
 
-void PackingGenetic::operator()(PackingList &result, std::chrono::microseconds runtime)
+void PackingGenetic::operator()(PackingList &result, std::vector<PackingList> &out)
 {
-    m_maxRunTime = runtime;
+    // 更新种群中最好的个体
+    calcBestOne();
     std::chrono::microseconds lastUsedTime(0);
     while (std::chrono::steady_clock::now() - m_beginTime + lastUsedTime < m_maxRunTime)
     {
@@ -67,7 +90,13 @@ void PackingGenetic::operator()(PackingList &result, std::chrono::microseconds r
         calcBestOne();
         lastUsedTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
     }
+
+    // 这里将随机的sqrt(nRect)个搜索序列导出，供下一次搜索使用
+    int nToResult = std::max(1, (int)std::sqrt(mPopulation.size()));
+    
     result = m_bestPacking;
+
+    out.insert(out.begin(), mPopulation.begin(), mPopulation.begin() + nToResult);
 }
 
 void PackingGenetic::select()
