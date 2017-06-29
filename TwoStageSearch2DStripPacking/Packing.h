@@ -29,7 +29,5 @@ private:
 
     // 算法启动时间
     std::chrono::steady_clock::time_point m_beginTime;
-    // 算法最大运行时间
-    static const std::chrono::seconds MAX_RUNTIME;
 };
 

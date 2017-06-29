@@ -17,7 +17,6 @@
 #include "PackingSimulatedAnnealing.h"
 #include "PackingGenetic.h"
 
-const std::chrono::seconds Packing::MAX_RUNTIME(59);
 
 Packing::Packing(double sheetWidth, int nRect)
 	: m_sheetWidth(sheetWidth), m_nRect(nRect)
