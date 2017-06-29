@@ -9,6 +9,6 @@ public:
     ~PackingLocalSearch();
 
     // Í¨¹ý PackingBase ¼Ì³Ð
-    virtual PackingList operator()() override;
+    virtual void operator()(PackingList &result, std::chrono::microseconds runtime = std::chrono::seconds(10)) override;
 };
 

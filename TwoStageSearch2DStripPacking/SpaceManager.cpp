@@ -186,12 +186,12 @@ Assign SpaceManager::pack(int index, const Rectangle * const rectangle)
 				cur->h2 = rectHeight;
 			}
 		}
-		// 3. 与左右都不一致，对于这种情况，把它始终放在左侧
+		// 3. 与左右都不一致，对于这种情况，把它随机放置
 		else
 		{
 			// 放在左侧
-			if (true)
-			// if (std::bernoulli_distribution(0.5)(eg))
+			// if (true)
+			if (std::bernoulli_distribution(0.5)(eg))
 			{
 				if (left != nullptr)
 				{

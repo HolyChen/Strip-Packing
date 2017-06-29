@@ -14,9 +14,9 @@ PackingLocalSearch::~PackingLocalSearch()
 {
 }
 
-PackingList PackingLocalSearch::operator()()
+void PackingLocalSearch::operator()(PackingList& result, std::chrono::microseconds runtime)
 {
-
+    m_maxRunTime = runtime;
     std::vector<Rectangle*> curSeachList(m_rectangles);
     std::sort(curSeachList.begin(), curSeachList.end(),
         static_cast<bool(*)(const Rectangle::_PRectangle&, const Rectangle::_PRectangle&)>(Rectangle::comparatorPerimeter));
@@ -44,11 +44,12 @@ PackingList PackingLocalSearch::operator()()
             }
 
             // 这里判断是否超时
-            if (std::chrono::steady_clock::now() - m_beginTime >= MAX_RUNTIME)
+            if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
             {
-                return m_bestPacking;
+                result = m_bestPacking;
+                return;
             }
         }
     }
-    return m_bestPacking;
+    result = m_bestPacking;
 }

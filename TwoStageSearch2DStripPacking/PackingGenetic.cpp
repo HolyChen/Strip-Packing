@@ -19,14 +19,15 @@ PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>&
 
     // 初始化种群的个体
     // 种群的1/4的个体（不少于一个）设置为之前已经找到的最佳搜索序列，剩余的3/4则使用对改最佳搜索序列的随机变异结果进行初始化
+
     int numOfQuarterPop = std::max(1, mNumOfPop / 4);
     for (int i = 0; i < numOfQuarterPop; i++)
     {
-        mPopulation.push_back(bestPacking);
+        mPopulation.push_back(m_bestPacking);
     }
     for (int i = numOfQuarterPop; i < mNumOfPop; i++)
     {
-        mPopulation.push_back(searchListMutate(bestPacking, std::chrono::high_resolution_clock().now().time_since_epoch().count()));
+        mPopulation.push_back(searchListMutate(m_bestPacking, std::chrono::high_resolution_clock().now().time_since_epoch().count()));
     }
 
     // 更新种群中最好的个体
@@ -38,16 +39,35 @@ PackingGenetic::~PackingGenetic()
 {
 }
 
-PackingList PackingGenetic::operator()()
+void PackingGenetic::operator()(PackingList &result, std::chrono::microseconds runtime)
 {
-    for (int i = 0; i < 1000; i++)
+    m_maxRunTime = runtime;
+    std::chrono::microseconds lastUsedTime(0);
+    while (std::chrono::steady_clock::now() - m_beginTime + lastUsedTime < m_maxRunTime)
     {
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
         select();
+        if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
+        {
+            calcBestOne();
+            break;
+        }
         cross();
+        if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
+        {
+            calcBestOne();
+            break;
+        }
         mutate();
+        if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
+        {
+            calcBestOne();
+            break;
+        }
         calcBestOne();
+        lastUsedTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
     }
-    return m_bestPacking;
+    result = m_bestPacking;
 }
 
 void PackingGenetic::select()
@@ -65,6 +85,10 @@ void PackingGenetic::select()
     std::vector<double> accumulateWeights;
     for (auto packingList : mPopulation)
     {
+        if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
+        {
+            return;
+        }
         accmulate += (pattern / (packingList.h - pattern + 1));
         accumulateWeights.push_back(accmulate);
     }
@@ -74,7 +98,7 @@ void PackingGenetic::select()
     std::uniform_real_distribution<double> distribution(0.0, accmulate);
 
     // 2. 进行mNumOfPop / 2轮选择，每次依照他们的权重选择一对个体
-    for (int i = 0; i < mNumOfHalfPop; i++)
+    for (int i = 0; i < mNumOfHalfPop && std::chrono::steady_clock::now() - m_beginTime < m_maxRunTime; i++)
     {
         int father = searchForBiggerThan<double>(accumulateWeights, distribution(engine));
         int mother = searchForBiggerThan<double>(accumulateWeights, distribution(engine));
@@ -95,6 +119,11 @@ void PackingGenetic::cross()
 
     for (auto parent : mParents)
     {
+        if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
+        {
+            calcBestOne();
+            return;
+        }
         const auto& p1 = mPopulation.at(parent.first), p2 = mPopulation.at(parent.second);
         // 交配吧！成功了生儿子，失败了变儿子
         if (distribution(engine) <= PROPORTION_CROSS)
@@ -124,6 +153,10 @@ void PackingGenetic::mutate()
 
     for (auto child : mNextPopulation)
     {
+        if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
+        {
+            return;
+        }
         if (distribution(engine) < PROPORTION_MUTATE)
         {
             newGerneration.push_back(searchListMutate(child, std::chrono::high_resolution_clock().now().time_since_epoch().count()));

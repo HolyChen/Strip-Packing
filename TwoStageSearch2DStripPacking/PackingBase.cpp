@@ -13,12 +13,11 @@
 #include "Space.h"
 #include "SpaceManager.h"
 
-const std::chrono::seconds PackingBase::MAX_RUNTIME(59);
-
 PackingBase::PackingBase(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking)
     : m_sheetWidth(sheetWidth), m_nRect(rectangles.size()), m_rectangles(rectangles), m_bestPacking(bestPacking),
       m_bestSearchList(bestPacking.searchList)
 {
+    m_bestPacking = heuristicPacking(m_bestSearchList);
     m_beginTime = std::chrono::steady_clock::now();
 }
 
@@ -52,12 +51,6 @@ PackingList PackingBase::heuristicPacking(const std::vector<Rectangle*>& searchL
         // 优先选择评分最高的
         auto rectangle = popHighestScoreRectangle(searchList, space, judegYang);
         // 但是如果评分最高的矩形，也是一个非常差的矩形，即宽度、h1、h2都不相等，
-        // 那么把他放回序列，且选择一个宽度最大且不超过当前空间的
-        //if (rectangle->width != space->width && rectangle->height != space->h1 && rectangle->height != space->h2)
-        //{
-        //	searchList.push_front(rectangle);
-        //	rectangle = popMaxWidthRectangle(searchList, space->width);
-        //}
         if (space->y + rectangle->height > packingList.h)
         {
             packingList.h = space->y + rectangle->height;

@@ -12,7 +12,7 @@ public:
     PackingBase(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking);
     ~PackingBase();
     // 搜索方法，函子
-    virtual PackingList operator()() = 0;
+    virtual void operator()(PackingList &result, std::chrono::microseconds runtime = std::chrono::seconds(10)) = 0;
 protected:
     // 启发式Packing算法
     // 输入：Packing序列
@@ -47,6 +47,6 @@ protected:
 
     // 算法启动时间
     std::chrono::steady_clock::time_point m_beginTime;
-    // 算法最大运行时间
-    static const std::chrono::seconds MAX_RUNTIME;
+    // 最大运行时间
+    std::chrono::microseconds m_maxRunTime;
 };

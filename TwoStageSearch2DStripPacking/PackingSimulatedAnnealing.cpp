@@ -15,8 +15,9 @@ PackingSimulatedAnnealing::~PackingSimulatedAnnealing()
 {
 }
 
-PackingList PackingSimulatedAnnealing::operator()()
+void PackingSimulatedAnnealing::operator()(PackingList& result, std::chrono::microseconds runtime)
 {
+    m_maxRunTime = runtime;
     // 初始温度设置为所有的矩形的面积和除以材料板的宽度，即压紧时的高度
     double temperature = 0.0;
     {
@@ -35,11 +36,11 @@ PackingList PackingSimulatedAnnealing::operator()()
     std::default_random_engine rdeg(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     // 搜索链承接LS的后的best链
     auto curSearchList(m_bestSearchList);
-    while (std::chrono::steady_clock::now() - m_beginTime < MAX_RUNTIME)
+    while (std::chrono::steady_clock::now() - m_beginTime < m_maxRunTime)
     {
         // 记录在这次搜索中是否找到更好的解
         bool better = false;
-        for (int i = 0; i < linkLength; i++)
+        for (int i = 0; i < linkLength && std::chrono::steady_clock::now() - m_beginTime < m_maxRunTime; i++)
         {
             // 获得两个不相等的随机数
             std::uniform_int_distribution<int> distLeft(0, m_nRect - 2);
@@ -80,6 +81,7 @@ PackingList PackingSimulatedAnnealing::operator()()
         }
         // 衰退方式为每次变更为上次一的0.9
         temperature *= 0.9;
+        /*
         // 多启动
         std::uniform_int_distribution<int> uIntD(0, 2);
         int type = uIntD(rdeg);
@@ -98,6 +100,7 @@ PackingList PackingSimulatedAnnealing::operator()()
         default:
             break;
         }
+        */
     }
-    return m_bestPacking;
+    result = m_bestPacking;
 }
