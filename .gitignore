@@ -1,5 +1,6 @@
 x64/
 x86/
 *.db
+.vs/
 Debug/
 Release/
