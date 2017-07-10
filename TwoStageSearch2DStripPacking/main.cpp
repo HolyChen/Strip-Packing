@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     double stripeWidth, lowerBound;
     int n;
 
-
+     
 	//std::ofstream outFile("resultLog.txt", std::ios::out);
 
 	//auto std_cout = std::cout.rdbuf();
