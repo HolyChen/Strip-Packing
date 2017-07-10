@@ -70,7 +70,6 @@ void PackingLocalSearch::singleSearch(PackingList & result, std::vector<PackingL
             {
                 result = m_bestPacking;
                 out.clear();
-                out.push_back(m_bestPacking);
                 out.push_back(heuristicPacking(curSearchList));
                 return;
             }
@@ -95,7 +94,6 @@ void PackingLocalSearch::singleSearch(PackingList & result, std::vector<PackingL
     }
 
     out.clear();
-    out.push_back(m_bestPacking);
     out.push_back(heuristicPacking(curSearchList));
     result = m_bestPacking;
 }

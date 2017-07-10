@@ -40,9 +40,14 @@ PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>&
     mNumOfPop = mNumOfHalfPop * 2;
 
     // 初始化种群的个体
-    // 首先加入1次所有的bestPackings的个体，剩余部分则设置为以0.3的概率BestPackings前5个个体的随机变异
-    mPopulation.insert(mPopulation.begin(), bestPackings.cbegin(), bestPackings.cend());
+    // 首先加入3次所有的bestPackings的个体，剩余部分则设置为以0.3的概率BestPackings前5个个体的随机变异
+    for (int i = 0; i < 3; i++)
+    {
+        mPopulation.insert(mPopulation.begin(), bestPackings.cbegin(), bestPackings.cend());
+    }
+
     int nLeft = mPopulation.size() - bestPackings.size();
+
 
     std::default_random_engine eg(std::chrono::high_resolution_clock().now().time_since_epoch().count());
     std::bernoulli_distribution dis(0.3);

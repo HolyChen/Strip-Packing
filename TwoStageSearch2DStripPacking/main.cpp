@@ -3,18 +3,41 @@
 
 #include "stdafx.h"
 
-#include <iostream>
 #include "Rectangle.h"
 #include "Packing.h"
 
+#include <string>
 #include <array>
 #include <numeric>
 
 #include <fstream>
 
-
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc < 3)
+    {
+        return 1;
+    }
+
+    try
+    {
+
+    }
+    catch (std::exception &e)
+    {
+        return 1;
+    }
+
+    std::ifstream input(argv[1]);
+    std::string caseName(argv[1]);
+    caseName = caseName.substr(0, caseName.length() - 4);
+
+    std::ofstream output(caseName + std::string("_result.out"));
+
+    double stripeWidth, lowerBound;
+    int n;
+
+
 	//std::ofstream outFile("resultLog.txt", std::ios::out);
 
 	//auto std_cout = std::cout.rdbuf();

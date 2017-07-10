@@ -60,7 +60,7 @@ PackingList Packing::isa()
     m_bestPacking.h = std::numeric_limits<double>::max();
 
 
-    const int nThread = 14;
+    const int nThread = 6;
     std::thread* threads[nThread];
 
     // ¾Ö²¿ËÑË÷
