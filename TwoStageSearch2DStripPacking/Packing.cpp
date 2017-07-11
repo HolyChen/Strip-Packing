@@ -263,3 +263,8 @@ PackingList Packing::isa()
 
 	return m_bestPacking;
 }
+
+std::vector<Rectangle*>& Packing::getRectangles()
+{
+    return m_rectangles;
+}

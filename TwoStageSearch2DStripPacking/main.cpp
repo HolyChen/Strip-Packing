@@ -9,18 +9,101 @@
 #include <string>
 #include <array>
 #include <numeric>
+#include <utility>
+
 
 #include <fstream>
 
+using fsecons = std::chrono::duration<float, std::chrono::seconds::period>;
+
+// 第1个参数为输入数据文件名，
+// 第2个参数为输入数据文件的路径
+// 第3个参数为输出文件的目录的绝对路径
+// 第4个参数为统计数据输出绝对路径
 int main(int argc, char* argv[])
 {
-    if (argc < 3)
+    if (argc < 5)
     {
         return 1;
     }
 
+    std::string caseName(argv[1]);
+    std::ifstream input;
+
+    input.open(argv[2]);
+
+
+    double stripWidth, lowerBound;
+    int n;
+
+    input >> stripWidth >> lowerBound >> n;
+
+    Packing p(stripWidth, n);
+
+    for (int i = 0; i < n; i++)
+    {
+        double width, height;
+        input >> width >> height;
+        p.pushRectangle(Rectangle(width, height, i));
+    }
+
+    input.close();
+
+    const int times = 10;
+    double hs[times];
+
+    for (int seed = 0; seed < times; seed++)
+    {
+        auto begin = std::chrono::steady_clock::now();
+        auto packingList = p.isa();
+        auto duration = fsecons(std::chrono::steady_clock::now() - begin);
+
+        std::ofstream output;
+        output.open(std::string(argv[3]) + "/" + caseName + "_seed" + std::to_string(seed) + ".pack");
+        output << "h: " << packingList.h << std::endl;
+        output << "time: " << (duration).count() << std::endl;
+        output << stripWidth << " " << lowerBound << std::endl;
+        output << n << std::endl;
+
+        for (const auto & rect : p.getRectangles())
+        {
+            output << rect->width << " " << rect->height << std::endl;
+        }
+
+        output << packingList.assigns.size() << std::endl;
+
+        for (int i = 0; i < packingList.assigns.size(); i++)
+        {
+            const auto& assign = packingList.assigns[i];
+            output << assign.mWidth << " " << assign.mHeight << " " << assign.mX << " " << assign.mY << " "
+                << assign.mX + assign.mWidth << " " << assign.mY + assign.mHeight << " " << i + 1 << std::endl;
+        }
+
+        output << 0 << std::endl;
+
+        output.close();
+
+        hs[seed] = packingList.h;
+
+    }
+
+    std::ofstream statisticResult;
+    statisticResult.open(argv[4], std::ios::app);
+
+    double minH = std::numeric_limits<double>::max();
+    for (int i = 0; i < times; i++)
+    {
+        minH = std::min(minH, hs[i]);
+    }
+
+    statisticResult << caseName << " " << n << " " << stripWidth << " " << lowerBound << " "
+        << minH << " " << std::accumulate<const double *, double>(hs, hs + times, 0.0) / times
+        << std::endl;
+    statisticResult.close();
+
     try
     {
+
 
     }
     catch (std::exception &e)
@@ -28,98 +111,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    std::ifstream input(argv[1]);
-    std::string caseName(argv[1]);
-    caseName = caseName.substr(0, caseName.length() - 4);
-
-    std::ofstream output(caseName + std::string("_result.out"));
-
-    double stripeWidth, lowerBound;
-    int n;
-
-     
-	//std::ofstream outFile("resultLog.txt", std::ios::out);
-
-	//auto std_cout = std::cout.rdbuf();
-
-	//std::cout.rdbuf(outFile.rdbuf());
-
-	int round;
-
-	std::cin >> round;
-
-	for (auto k = 0; k < round; k++)
-	{
-		std::cout << "Case " << k + 1 << std::endl;
-		double stripWidth;
-		int n;
-		std::cin >> stripWidth >> n;
-		std::cout << stripWidth << " " << n << std::endl;
-		std::cout << std::endl;
-
-		const int times = 5;
-		std::array<double, times> result;
-
-		Packing p(stripWidth, n);
-
-		double area = 0.0;
-
-		for (int i = 0; i < n; i++)
-		{
-			double width, heigth;
-			std::cin >> heigth >> width;
-			std::cout << heigth << " " << width << std::endl;
-			p.pushRectangle(Rectangle(width, heigth, i));
-			area += width * heigth;
-		}
-
-		std::cout << std::endl;
-
-		for (int i = 0; i < times; i++)
-		{
-			auto packingList = p.isa();
-
-			std::cout << "Rects' Area:  " << area << "\t ";
-			std::cout << "Strip's Ares: " << packingList.h * stripWidth << "\t ";
-			std::cout << "Strip's Height: " << packingList.h << std::endl;
-			// if (packingList.h * stripWidth == area)
-			{
-                auto deltaArea = packingList.h * stripWidth - area;
-                if (deltaArea < 0)
-                {
-                    std::cout << "------------- Wrong Packing: -------------" << std::endl;
-                }
-                else if (deltaArea > 0)
-                {
-                    std::cout << "------------- Not Best Packing: -------------" << std::endl;
-                }
-                else
-                {
-                    std::cout << "------------- Best Packing: -------------" << std::endl;
-                }
-				std::cout << n << " " << stripWidth << " " << packingList.h << std::endl;
-				for (auto&& packing : packingList.assigns)
-				{
-					/*std::cout << "(" << packing.mX << ", " << packing.mY << ")"
-						<< " <-- " << "(" << packing.mWidth << ", " << packing.mHeight << ")" << std::endl;*/
-					std::cout << packing.mX << " " << packing.mY << " " << packing.mWidth << " " << packing.mHeight << std::endl;
-				}
-			}
-			if (packingList.h * stripWidth == area)
-			{
-				break;
-			}
-			result[i] = packingList.h;
-		}
-
-		std::cout << "Mean: " << std::accumulate(result.begin(), result.end(), 0.0) / (double)times << std::endl;
-		std::cout << std::endl;
-		std::cout << std::endl;
-	}
-/*
-	std::cout.rdbuf(std_cout);
-
-	outFile.close();*/
+    
     return 0;
 }
 

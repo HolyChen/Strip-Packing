@@ -18,6 +18,7 @@ public:
 	void pushRectangle(const Rectangle & rect);
 	void pushRectangle(Rectangle * const rect) throw(std::invalid_argument);
 	PackingList isa();
+    std::vector<Rectangle*>& getRectangles();
 private:
 	double m_sheetWidth;
 	PackingList m_bestPacking;
