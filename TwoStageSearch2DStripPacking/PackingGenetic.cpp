@@ -73,8 +73,7 @@ void PackingGenetic::operator()(PackingList &result, std::vector<PackingList> &o
 {
     // 更新种群中最好的个体
     calcBestOne();
-    std::chrono::microseconds lastUsedTime(0);
-    while (std::chrono::steady_clock::now() - m_beginTime + lastUsedTime < m_maxRunTime)
+    while (std::chrono::steady_clock::now() - m_beginTime < m_maxRunTime)
     {
         std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
         select();
@@ -96,7 +95,6 @@ void PackingGenetic::operator()(PackingList &result, std::vector<PackingList> &o
             break;
         }
         calcBestOne();
-        lastUsedTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
     }
 
     // 这里将随机的(nRect/4)个搜索序列导出，供下一次搜索使用
