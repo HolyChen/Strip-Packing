@@ -26,35 +26,38 @@ void PackingLocalSearch::singleSearch(PackingList & result, std::vector<PackingL
     std::vector<Rectangle*> curSearchList(m_bestSearchList);
     m_bestPacking = heuristicPacking(curSearchList);
 
-    for (int i = 0; i < m_nRect - 1; i++)
+    while (std::chrono::steady_clock::now() - m_beginTime < m_maxRunTime)
     {
-        for (int j = i + 1; j < m_nRect; j++)
+        for (int i = 0; i < m_nRect - 1; i++)
         {
-            // 这里判断是否超时
-            if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
+            for (int j = i + 1; j < m_nRect; j++)
             {
-                out.clear();
-                out.push_back(heuristicPacking(curSearchList));
-                result = m_bestPacking;
-                return;
-            }
-            auto newSearchList(curSearchList);
-            // 交换第i、j个元素位置
-            {
-                auto temp = newSearchList.at(i);
-                newSearchList.at(i) = newSearchList.at(j);
-                newSearchList.at(j) = temp;
-            }
+                // 这里判断是否超时
+                if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
+                {
+                    out.clear();
+                    out.push_back(heuristicPacking(curSearchList));
+                    result = m_bestPacking;
+                    return;
+                }
+                auto newSearchList(curSearchList);
+                // 交换第i、j个元素位置
+                {
+                    auto temp = newSearchList.at(i);
+                    newSearchList.at(i) = newSearchList.at(j);
+                    newSearchList.at(j) = temp;
+                }
 
-            auto currentPacking = heuristicPacking(newSearchList);
-            // 如果这个新的序列的搜索结果好于原始序列，则替换原始序列为新序列，并更新全局最优序列
-            if (currentPacking.h <= m_bestPacking.h)
-            {
-                m_bestPacking = currentPacking;
-                m_bestSearchList = newSearchList;
-                curSearchList = newSearchList;
-            }
+                auto currentPacking = heuristicPacking(newSearchList);
+                // 如果这个新的序列的搜索结果好于原始序列，则替换原始序列为新序列，并更新全局最优序列
+                if (currentPacking.h <= m_bestPacking.h)
+                {
+                    m_bestPacking = currentPacking;
+                    m_bestSearchList = newSearchList;
+                    curSearchList = newSearchList;
+                }
 
+            }
         }
     }
 

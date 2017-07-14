@@ -9,7 +9,7 @@
 class PackingBase
 {
 public:
-    PackingBase(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking, std::chrono::microseconds runtime = std::chrono::seconds(10));
+    PackingBase(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking, std::chrono::microseconds runtime);
     ~PackingBase();
     // ËÑË÷·½·¨£¬º¯×Ó
     virtual void operator()(PackingList &result, std::vector<PackingList> &out) = 0;

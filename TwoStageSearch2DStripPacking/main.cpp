@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 
     input.close();
 
-    const int times = 5;
+    const int times = 10;
     double hs[times];
 
     for (int seed = 0; seed < times; seed++)

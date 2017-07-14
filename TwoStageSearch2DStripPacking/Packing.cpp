@@ -74,7 +74,7 @@ PackingList Packing::isa()
     // 上一次搜索最好的解集，从第二轮开始使用
     std::vector<PackingList> randomNResult;
 
-    const int runtime = 14;
+    const int runtime = 14'500'000;
 
     for (int round = 0; round < 4; round++)
     {
@@ -106,7 +106,7 @@ PackingList Packing::isa()
                         PackingList initList;
                         initList.searchList = initSeachList;
                         initList.h = std::numeric_limits<double>::max();
-                        PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::seconds(runtime))(result, out);
+                        PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::microseconds(runtime))(result, out);
                     }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
                 }
                 else if (i == 1)
@@ -119,7 +119,7 @@ PackingList Packing::isa()
                         PackingList initList;
                         initList.searchList = initSeachList;
                         initList.h = std::numeric_limits<double>::max();
-                        PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::seconds(runtime))(result, out);
+                        PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::microseconds(runtime))(result, out);
                     }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
                 }
                 else if (i == 2)
@@ -132,7 +132,7 @@ PackingList Packing::isa()
                         PackingList initList;
                         initList.searchList = initSeachList;
                         initList.h = std::numeric_limits<double>::max();
-                        PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::seconds(runtime))(result, out);
+                        PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::microseconds(runtime))(result, out);
                     }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
                 }
                 else if (i == 3)
@@ -145,7 +145,7 @@ PackingList Packing::isa()
                         PackingList initList;
                         initList.searchList = initSeachList;
                         initList.h = std::numeric_limits<double>::max();
-                        PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::seconds(runtime))(result, out);
+                        PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::microseconds(runtime))(result, out);
                     }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
                 }
             }
@@ -153,7 +153,7 @@ PackingList Packing::isa()
             {
                 threads[threadId] = new std::thread([&](int indexOfResult, PackingList& result, std::vector<PackingList>& out)
                 {
-                    PackingLocalSearch(m_sheetWidth, m_rectangles, randomNResult[indexOfResult], std::chrono::seconds(runtime))(result, out);
+                    PackingLocalSearch(m_sheetWidth, m_rectangles, randomNResult[indexOfResult], std::chrono::microseconds(runtime))(result, out);
                 }, i, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
             }
             threadId++;
@@ -164,7 +164,7 @@ PackingList Packing::isa()
         {
             threads[threadId] = new std::thread([&](PackingList& result, std::vector<PackingList>& out)
             {
-                PackingSimulatedAnnealing(m_sheetWidth, m_rectangles, m_bestPacking, std::chrono::seconds(runtime))(result, out);
+                PackingSimulatedAnnealing(m_sheetWidth, m_rectangles, m_bestPacking, std::chrono::microseconds(runtime))(result, out);
             }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
             threadId++;
         }
@@ -175,14 +175,14 @@ PackingList Packing::isa()
             {
                 threads[threadId] = new std::thread([&](PackingList& result, std::vector<PackingList>& out)
                 {
-                    PackingGenetic(m_sheetWidth, m_rectangles, m_bestPacking, std::chrono::seconds(runtime))(result, out);
+                    PackingGenetic(m_sheetWidth, m_rectangles, m_bestPacking, std::chrono::microseconds(runtime))(result, out);
                 }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
             }
             else
             {
                 threads[threadId] = new std::thread([&](PackingList& result, std::vector<PackingList>& out)
                 {
-                    PackingGenetic(m_sheetWidth, m_rectangles, randomNResult, std::chrono::seconds(runtime))(result, out);
+                    PackingGenetic(m_sheetWidth, m_rectangles, randomNResult, std::chrono::microseconds(runtime))(result, out);
                 }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
             }
             threadId++;

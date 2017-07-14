@@ -5,7 +5,7 @@ class PackingLocalSearch :
     public PackingBase
 {
 public:
-    PackingLocalSearch(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking, std::chrono::microseconds runtime = std::chrono::seconds(10));
+    PackingLocalSearch(double sheetWidth, const std::vector<Rectangle*>& rectangles, const PackingList& bestPacking, std::chrono::microseconds runtime);
     ~PackingLocalSearch();
 
     // Í¨¹ý PackingBase ¼Ì³Ð
