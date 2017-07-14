@@ -66,10 +66,9 @@ PackingList Packing::isa()
     // 局部搜索
     int nLocal = 4;
     // 模拟退火
-    // int nSA = nThread * 0.3;
-    int nSA = 0;
+    int nSA = std::min(nThread - nLocal, (int)(nThread * 0.3));
     // 遗传算法
-    int nGenetic = 0;
+    int nGenetic = nThread - nSA - nLocal;
 
     // 上一次搜索最好的解集，从第二轮开始使用
     std::vector<PackingList> randomNResult;
