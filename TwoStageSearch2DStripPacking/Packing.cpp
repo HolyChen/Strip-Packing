@@ -66,7 +66,7 @@ PackingList Packing::isa()
     // 局部搜索
     int nLocal = 4;
     // 模拟退火
-    int nSA = std::min(nThread - nLocal, (int)(nThread * 0.3));
+    int nSA = std::min(nThread - nLocal, 1);
     // 遗传算法
     int nGenetic = nThread - nSA - nLocal;
 
@@ -83,9 +83,6 @@ PackingList Packing::isa()
         }
         std::vector<PackingList> threadBestPacking(nThread);
         std::vector<std::vector<PackingList>> threadMultiResult(nThread);
-
-        int weightSA = 1;
-        int weightGenetic = 1;
 
         int threadId = 0;
 
@@ -192,7 +189,6 @@ PackingList Packing::isa()
         std::set<PackingList, PackingListCmp> topResults;
 
         // 运算结束从中读取数据，如果某个方法取得了更好的效果，那么下一次给他分配更多的线程计算
-        double oldH = m_bestPacking.h;
         threadId = 0;
         for (int i = 0; i < nLocal; i++)
         {
@@ -214,10 +210,6 @@ PackingList Packing::isa()
             {
                 m_bestPacking = threadBestPacking[threadId];
             }
-            if (threadBestPacking[threadId].h < oldH)
-            {
-                weightSA++;
-            }
             delete threads[threadId];
             threadId++;
         }
@@ -229,10 +221,6 @@ PackingList Packing::isa()
             if (threadBestPacking[threadId].h < m_bestPacking.h)
             {
                 m_bestPacking = threadBestPacking[threadId];
-            }
-            if (threadBestPacking[threadId].h < oldH)
-            {
-                weightGenetic++;
             }
             delete threads[threadId];
             threadId++;
@@ -253,7 +241,7 @@ PackingList Packing::isa()
         // 更新下一次各种方法的线程数。注意，这里每个线程的权重至少有1，也就是采取了拉普拉斯平滑
         // 局部搜索并非是随机算法，它负责深度挖掘，固定4
         nLocal = std::min(4 , (int)randomNResult.size());
-        nSA = std::max(1, (int)((double)(weightSA) / (double)(weightSA + weightGenetic) * (nThread - nLocal)));
+        nSA = std::min(nThread - nLocal, 2);
         nGenetic = nThread - nLocal - nSA;
 
     }
