@@ -14,8 +14,8 @@ PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>&
     : PackingBase(sheetWidth, rectangles, bestPacking, runtime)
 {
     // 初始化种群
-    // 将种群数量设置为矩形数量的4倍取整
-    mNumOfHalfPop = std::max(1, (int)std::round(m_nRect) / 4) * 2;
+    // 将种群数量设置为总占用的内存不超过1GB，且总数不大于矩形数量4倍
+    mNumOfHalfPop = std::max(std::min((int)(500'000'000 / ((sizeof(Rectangle*) + sizeof(Assign)) * m_nRect + 64)), 2 * m_nRect), 1);
     mNumOfPop = mNumOfHalfPop * 2;
 
     // 初始化种群的个体
@@ -35,8 +35,8 @@ PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>&
     : PackingBase(sheetWidth, rectangles, bestPackings.front(), runtime)
 {
     // 初始化种群
-    // 将种群数量设置为矩形数量的4倍取整
-    mNumOfHalfPop = std::max(1, (int)std::round(m_nRect) / 4) * 2;
+    // 将种群数量设置为总占用的内存不超过1GB，且总数不大于矩形数量4倍
+    mNumOfHalfPop = std::max(std::min((int)(500'000'000 / ((sizeof(Rectangle*) + sizeof(Assign)) * m_nRect + 64)), 2 * m_nRect), 1);
     mNumOfPop = mNumOfHalfPop * 2;
 
     // 初始化种群的个体
@@ -46,7 +46,7 @@ PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>&
         mPopulation.insert(mPopulation.begin(), bestPackings.cbegin(), bestPackings.cbegin() + std::min(mNumOfPop, (int)bestPackings.size()));
     }
 
-    int nLeft = mPopulation.size() - bestPackings.size();
+    int nLeft = mNumOfPop - std::min(mNumOfPop, (int)bestPackings.size());
 
     std::default_random_engine eg(std::chrono::high_resolution_clock().now().time_since_epoch().count());
     std::bernoulli_distribution dis(0.3);
@@ -97,7 +97,7 @@ void PackingGenetic::operator()(PackingList &result, std::vector<PackingList> &o
         calcBestOne();
     }
 
-    // 这里将随机的(nRect/4)个搜索序列导出，供下一次搜索使用
+    // 这里将随机的(mPopulation.size()/4)个搜索序列导出，供下一次搜索使用
     int nToResult = std::max(1, int(mPopulation.size() / 4));
     
     result = m_bestPacking;

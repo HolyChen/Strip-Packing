@@ -73,10 +73,16 @@ PackingList Packing::isa()
     // 上一次搜索最好的解集，从第二轮开始使用
     std::vector<PackingList> randomNResult;
 
-    const int runtime = 14'500'000;
+
+    const int totaltime = 60'000'000;
+    const int aRoundRuntime = 14'500'000;
+    int runtime = aRoundRuntime;
+    int leftTime = totaltime;
 
     for (int round = 0; round < 4; round++)
     {
+        auto startTime = std::chrono::steady_clock::now();
+
         if (m_bestPacking.h <= m_lowerBound)
         {
             break;
@@ -225,26 +231,61 @@ PackingList Packing::isa()
             delete threads[threadId];
             threadId++;
         }
-        // 将所有线程随机导出的序列留给下一轮搜索
-        randomNResult.clear();
-        randomNResult.insert(randomNResult.begin(), topResults.begin(), topResults.end());
 
-        randomNResult.push_back(m_bestPacking);
-        // 这里对之前的结果进行排序，因为这两个算法都基于相对较好的结果进行
-        std::sort(randomNResult.begin(), randomNResult.end(),
-            [](const PackingList& lhs, const PackingList& rhs)
+
+
+        if (std::chrono::steady_clock::now() - m_beginTime >= std::chrono::seconds(60))
+        {
+            break;
+        }
+
+        auto topResultsSize = topResults.size();
+
+        const PackingList** ptrTopResults = new const PackingList*[topResultsSize];
+
+        {
+            int i = 0;
+            for (auto iter = topResults.begin(); iter != topResults.end(); iter++)
             {
-                return lhs.h < rhs.h;
+                ptrTopResults[i] = &(*iter);
+                i++;
+            }
+        }
+
+        // 这里对之前的结果进行排序，因为这两个算法都基于相对较好的结果进行
+        std::sort(ptrTopResults, ptrTopResults + topResultsSize,
+            [](const PackingList* lhs, const PackingList* rhs)
+            {
+                return lhs->h < rhs->h;
             }
         );
 
-        // 更新下一次各种方法的线程数。注意，这里每个线程的权重至少有1，也就是采取了拉普拉斯平滑
+        // 将所有线程随机导出的序列留给下一轮搜索
+        randomNResult.clear();
+        randomNResult.resize(topResultsSize);
+
+        for (int i = 0; i < topResultsSize; i++)
+        {
+            randomNResult[i] = *ptrTopResults[i];
+        }
+
+        delete[] ptrTopResults;
+
+        // 更新下一次各种方法的线程数。
         // 局部搜索并非是随机算法，它负责深度挖掘，固定4
         nLocal = std::min(4 , (int)randomNResult.size());
         nSA = std::min(nThread - nLocal, 2);
         nGenetic = nThread - nLocal - nSA;
 
+        leftTime -= std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
+        runtime = std::min(leftTime, aRoundRuntime);
+        if (runtime <= 0)
+        {
+            break;
+        }
+
     }
+
 
 
 	return m_bestPacking;

@@ -6,7 +6,7 @@
     <LocalDebuggerWorkingDirectory>$(ProjectDir)..\x64\Release</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>50 50.txt . out.txt</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>100 100.txt . out.txt</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(ProjectDir)..\x64\Debug</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
