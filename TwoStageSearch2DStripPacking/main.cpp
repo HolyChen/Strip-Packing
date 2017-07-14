@@ -11,15 +11,15 @@
 #include <numeric>
 #include <utility>
 
-
+#include <iostream>
 #include <fstream>
 
 using fsecons = std::chrono::duration<float, std::chrono::seconds::period>;
 
-// 第1个参数为输入数据文件名，
+// 第1个参数为输入数据的名称
 // 第2个参数为输入数据文件的路径
-// 第3个参数为输出文件的目录的绝对路径
-// 第4个参数为统计数据输出绝对路径
+// 第3个参数为输出文件的目录的路径
+// 第4个参数为统计数据输出路径
 int main(int argc, char* argv[])
 {
     if (argc < 5)
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 
     input >> stripWidth >> lowerBound >> n;
 
-    Packing p(stripWidth, n);
+    Packing p(stripWidth, n, lowerBound);
 
     for (int i = 0; i < n; i++)
     {
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 
     input.close();
 
-    const int times = 10;
+    const int times = 5;
     double hs[times];
 
     for (int seed = 0; seed < times; seed++)
@@ -58,8 +58,9 @@ int main(int argc, char* argv[])
         auto packingList = p.isa();
         auto duration = fsecons(std::chrono::steady_clock::now() - begin);
 
+        std::cout << caseName + " seed " + std::to_string(seed + 1) + " in " + std::to_string(times) + " completed" << std::endl;
         std::ofstream output;
-        output.open(std::string(argv[3]) + "/" + caseName + "_seed" + std::to_string(seed) + ".pack");
+        output.open(std::string(argv[3]) + "/" + caseName + "_seed" + std::to_string(seed + 1) + ".pack");
         output << "h: " << packingList.h << std::endl;
         output << "time: " << (duration).count() << std::endl;
         output << stripWidth << " " << lowerBound << std::endl;
@@ -90,15 +91,12 @@ int main(int argc, char* argv[])
     std::ofstream statisticResult;
     statisticResult.open(argv[4], std::ios::app);
 
-    double minH = std::numeric_limits<double>::max();
+    statisticResult << caseName << " " << n << " " << stripWidth << " " << lowerBound << " " << times << " ";
     for (int i = 0; i < times; i++)
     {
-        minH = std::min(minH, hs[i]);
+        std::cout << hs[i] << " ";
     }
-
-    statisticResult << caseName << " " << n << " " << stripWidth << " " << lowerBound << " "
-        << minH << " " << std::accumulate<const double *, double>(hs, hs + times, 0.0) / times
-        << std::endl;
+    std::cout << std::endl;
     statisticResult.close();
 
     try
@@ -106,7 +104,7 @@ int main(int argc, char* argv[])
 
 
     }
-    catch (std::exception &e)
+    catch (...)
     {
         return 1;
     }

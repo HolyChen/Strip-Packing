@@ -13,7 +13,7 @@ class Space;
 class Packing
 {
 public:
-	Packing(double sheetWidth, int nRect);
+	Packing(double sheetWidth, int nRect, double lowerBound);
 	~Packing();
 	void pushRectangle(const Rectangle & rect);
 	void pushRectangle(Rectangle * const rect) throw(std::invalid_argument);
@@ -22,6 +22,9 @@ public:
 private:
 	double m_sheetWidth;
 	PackingList m_bestPacking;
+
+    double m_lowerBound;
+
 	std::vector<Rectangle*> m_bestSearchList;
 	// 总共要裁剪的矩形数量
 	int m_nRect;

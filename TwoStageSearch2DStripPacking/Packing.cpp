@@ -19,8 +19,8 @@
 #include "PackingGenetic.h"
 
 
-Packing::Packing(double sheetWidth, int nRect)
-	: m_sheetWidth(sheetWidth), m_nRect(nRect)
+Packing::Packing(double sheetWidth, int nRect, double lowerBound)
+    : m_sheetWidth(sheetWidth), m_nRect(nRect), m_lowerBound(lowerBound)
 {
 	
 }
@@ -60,7 +60,7 @@ PackingList Packing::isa()
     m_bestPacking.h = std::numeric_limits<double>::max();
 
 
-    const int nThread = 6;
+    const int nThread = 14;
     std::thread* threads[nThread];
 
     // 局部搜索
@@ -74,11 +74,14 @@ PackingList Packing::isa()
     // 上一次搜索最好的解集，从第二轮开始使用
     std::vector<PackingList> randomNResult;
 
-    const int runtime = 9;
+    const int runtime = 14;
 
-    for (int round = 0; round < 6; round++)
+    for (int round = 0; round < 4; round++)
     {
-
+        if (m_bestPacking.h <= m_lowerBound)
+        {
+            break;
+        }
         std::vector<PackingList> threadSingleResult(nThread);
         std::vector<std::vector<PackingList>> threadMultiResult(nThread);
 
