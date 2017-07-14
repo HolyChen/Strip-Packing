@@ -14,8 +14,8 @@ PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>&
     : PackingBase(sheetWidth, rectangles, bestPacking, runtime)
 {
     // 初始化种群
-    // 将种群数量设置为矩形数量的2倍取整
-    mNumOfHalfPop = std::max(1, (int)std::round(m_nRect) / 2);
+    // 将种群数量设置为矩形数量的4倍取整
+    mNumOfHalfPop = std::max(1, (int)std::round(m_nRect) / 4) * 2;
     mNumOfPop = mNumOfHalfPop * 2;
 
     // 初始化种群的个体
@@ -35,19 +35,18 @@ PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>&
     : PackingBase(sheetWidth, rectangles, bestPackings.front(), runtime)
 {
     // 初始化种群
-    // 将种群数量设置为矩形数量的2倍取整，如果传入的bestPackings的数量比种群数量的1/5大，则设为bestPackngs大小的5倍
-    mNumOfHalfPop = std::max(std::max(1, (int)std::round(m_nRect) / 2), (int)std::round((bestPackings.size() / 2.5)));
+    // 将种群数量设置为矩形数量的4倍取整
+    mNumOfHalfPop = std::max(1, (int)std::round(m_nRect) / 4) * 2;
     mNumOfPop = mNumOfHalfPop * 2;
 
     // 初始化种群的个体
-    // 首先加入3次所有的bestPackings的个体，剩余部分则设置为以0.3的概率BestPackings前5个个体的随机变异
-    for (int i = 0; i < 3; i++)
+    // 首先加入1次所有的bestPackings的个体，剩余部分则设置为以0.3的概率生成种群中第一个序列随机变异
+    for (int i = 0; i < 1; i++)
     {
-        mPopulation.insert(mPopulation.begin(), bestPackings.cbegin(), bestPackings.cend());
+        mPopulation.insert(mPopulation.begin(), bestPackings.cbegin(), bestPackings.cbegin() + std::min(mNumOfPop, (int)bestPackings.size()));
     }
 
     int nLeft = mPopulation.size() - bestPackings.size();
-
 
     std::default_random_engine eg(std::chrono::high_resolution_clock().now().time_since_epoch().count());
     std::bernoulli_distribution dis(0.3);
@@ -56,7 +55,11 @@ PackingGenetic::PackingGenetic(double sheetWidth, const std::vector<Rectangle*>&
     {
         if (dis(eg))
         {
-            mPopulation.push_back(searchListMutate(bestPackings[i % 5], std::chrono::high_resolution_clock().now().time_since_epoch().count()));
+            mPopulation.push_back(searchListMutate(bestPackings[0], std::chrono::high_resolution_clock().now().time_since_epoch().count()));
+        }
+        else
+        {
+            mPopulation.push_back(bestPackings[0]);
         }
     }
 }
@@ -96,8 +99,8 @@ void PackingGenetic::operator()(PackingList &result, std::vector<PackingList> &o
         lastUsedTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
     }
 
-    // 这里将随机的sqrt(nRect)个搜索序列导出，供下一次搜索使用
-    int nToResult = std::max(1, (int)std::sqrt(mPopulation.size()));
+    // 这里将随机的(nRect/4)个搜索序列导出，供下一次搜索使用
+    int nToResult = std::max(1, int(mPopulation.size() / 4));
     
     result = m_bestPacking;
 
@@ -285,6 +288,22 @@ PackingList PackingGenetic::searchListMutate(const PackingList srcList, long lon
     {
         newSearchList.at(index++) = srcList.searchList.at(i);
     }
+
+    //// 随机选取一段搜索序列，把它翻转
+    //int randl = std::rand() % m_nRect;
+    //int rand2 = std::rand() % m_nRect;
+
+    //int left = std::min(randl, rand2);
+    //int right = std::max(randl, rand2);
+
+    //int length = right - left + 1;
+
+    //newSearchList = srcList.searchList;
+
+    //for (int i = 0; i < length; i++)
+    //{
+    //    newSearchList.at(left + i) = srcList.searchList.at(right - i);
+    //}
 
     // 对这个新的列表解Packing问题
     return heuristicPacking(newSearchList);

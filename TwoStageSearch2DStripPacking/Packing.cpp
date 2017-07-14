@@ -82,7 +82,7 @@ PackingList Packing::isa()
         {
             break;
         }
-        std::vector<PackingList> threadSingleResult(nThread);
+        std::vector<PackingList> threadBestPacking(nThread);
         std::vector<std::vector<PackingList>> threadMultiResult(nThread);
 
         int weightSA = 1;
@@ -107,7 +107,7 @@ PackingList Packing::isa()
                         initList.searchList = initSeachList;
                         initList.h = std::numeric_limits<double>::max();
                         PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::seconds(runtime))(result, out);
-                    }, std::ref(threadSingleResult[threadId]), std::ref(threadMultiResult[threadId]));
+                    }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
                 }
                 else if (i == 1)
                 {
@@ -120,7 +120,7 @@ PackingList Packing::isa()
                         initList.searchList = initSeachList;
                         initList.h = std::numeric_limits<double>::max();
                         PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::seconds(runtime))(result, out);
-                    }, std::ref(threadSingleResult[threadId]), std::ref(threadMultiResult[threadId]));
+                    }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
                 }
                 else if (i == 2)
                 {
@@ -133,7 +133,7 @@ PackingList Packing::isa()
                         initList.searchList = initSeachList;
                         initList.h = std::numeric_limits<double>::max();
                         PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::seconds(runtime))(result, out);
-                    }, std::ref(threadSingleResult[threadId]), std::ref(threadMultiResult[threadId]));
+                    }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
                 }
                 else if (i == 3)
                 {
@@ -146,7 +146,7 @@ PackingList Packing::isa()
                         initList.searchList = initSeachList;
                         initList.h = std::numeric_limits<double>::max();
                         PackingLocalSearch(m_sheetWidth, m_rectangles, initList, std::chrono::seconds(runtime))(result, out);
-                    }, std::ref(threadSingleResult[threadId]), std::ref(threadMultiResult[threadId]));
+                    }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
                 }
             }
             else
@@ -154,7 +154,7 @@ PackingList Packing::isa()
                 threads[threadId] = new std::thread([&](int indexOfResult, PackingList& result, std::vector<PackingList>& out)
                 {
                     PackingLocalSearch(m_sheetWidth, m_rectangles, randomNResult[indexOfResult], std::chrono::seconds(runtime))(result, out);
-                }, i, std::ref(threadSingleResult[threadId]), std::ref(threadMultiResult[threadId]));
+                }, i, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
             }
             threadId++;
         }
@@ -165,7 +165,7 @@ PackingList Packing::isa()
             threads[threadId] = new std::thread([&](PackingList& result, std::vector<PackingList>& out)
             {
                 PackingSimulatedAnnealing(m_sheetWidth, m_rectangles, m_bestPacking, std::chrono::seconds(runtime))(result, out);
-            }, std::ref(threadSingleResult[threadId]), std::ref(threadMultiResult[threadId]));
+            }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
             threadId++;
         }
 
@@ -176,14 +176,14 @@ PackingList Packing::isa()
                 threads[threadId] = new std::thread([&](PackingList& result, std::vector<PackingList>& out)
                 {
                     PackingGenetic(m_sheetWidth, m_rectangles, m_bestPacking, std::chrono::seconds(runtime))(result, out);
-                }, std::ref(threadSingleResult[threadId]), std::ref(threadMultiResult[threadId]));
+                }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
             }
             else
             {
                 threads[threadId] = new std::thread([&](PackingList& result, std::vector<PackingList>& out)
                 {
                     PackingGenetic(m_sheetWidth, m_rectangles, randomNResult, std::chrono::seconds(runtime))(result, out);
-                }, std::ref(threadSingleResult[threadId]), std::ref(threadMultiResult[threadId]));
+                }, std::ref(threadBestPacking[threadId]), std::ref(threadMultiResult[threadId]));
             }
             threadId++;
         }
@@ -199,11 +199,10 @@ PackingList Packing::isa()
         {
             threads[threadId]->join();
             topResults.insert(threadMultiResult[threadId].begin(), threadMultiResult[threadId].end());
-            if (threadSingleResult[threadId].h < m_bestPacking.h)
+            if (threadBestPacking[threadId].h < m_bestPacking.h)
             {
-                m_bestPacking = threadSingleResult[threadId];
+                m_bestPacking = threadBestPacking[threadId];
             }
-            topResults.insert(threadSingleResult[threadId]);
             delete threads[threadId];
             threadId++;
         }
@@ -212,16 +211,14 @@ PackingList Packing::isa()
         {
             threads[threadId]->join();
             topResults.insert(threadMultiResult[threadId].begin(), threadMultiResult[threadId].end());
-            if (threadSingleResult[threadId].h < m_bestPacking.h)
+            if (threadBestPacking[threadId].h < m_bestPacking.h)
             {
-                m_bestPacking = threadSingleResult[threadId];
+                m_bestPacking = threadBestPacking[threadId];
+            }
+            if (threadBestPacking[threadId].h < oldH)
+            {
                 weightSA++;
             }
-            if (threadSingleResult[threadId].h < oldH)
-            {
-                weightSA++;
-            }
-            topResults.insert(threadSingleResult[threadId]);
             delete threads[threadId];
             threadId++;
         }
@@ -230,12 +227,11 @@ PackingList Packing::isa()
         {
             threads[threadId]->join();
             topResults.insert(threadMultiResult[threadId].begin(), threadMultiResult[threadId].end());
-            auto & bestOne = threadSingleResult[threadId];
-            if (bestOne.h < m_bestPacking.h)
+            if (threadBestPacking[threadId].h < m_bestPacking.h)
             {
-                m_bestPacking = bestOne;
+                m_bestPacking = threadBestPacking[threadId];
             }
-            if (bestOne.h < oldH)
+            if (threadBestPacking[threadId].h < oldH)
             {
                 weightGenetic++;
             }
@@ -250,9 +246,9 @@ PackingList Packing::isa()
         // 这里对之前的结果进行排序，因为这两个算法都基于相对较好的结果进行
         std::sort(randomNResult.begin(), randomNResult.end(),
             [](const PackingList& lhs, const PackingList& rhs)
-        {
-            return lhs.h < rhs.h;
-        }
+            {
+                return lhs.h < rhs.h;
+            }
         );
 
         // 更新下一次各种方法的线程数。注意，这里每个线程的权重至少有1，也就是采取了拉普拉斯平滑

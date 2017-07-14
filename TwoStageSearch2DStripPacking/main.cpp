@@ -94,9 +94,9 @@ int main(int argc, char* argv[])
     statisticResult << caseName << " " << n << " " << stripWidth << " " << lowerBound << " " << times << " ";
     for (int i = 0; i < times; i++)
     {
-        std::cout << hs[i] << " ";
+        statisticResult << hs[i] << " ";
     }
-    std::cout << std::endl;
+    statisticResult << std::endl;
     statisticResult.close();
 
     try
