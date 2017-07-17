@@ -190,9 +190,8 @@ Assign SpaceManager::pack(int index, const Rectangle * const rectangle)
 		else
 		{
 			// ·ÅÔÚ×ó²à
-			// if (true)
-			if (std::bernoulli_distribution(0.5)(eg))
-			{
+            if (std::bernoulli_distribution(0.5)(eg))
+            {
 				if (left != nullptr)
 				{
 					left->h2 = rectHeight - h1 > 0.0 ? rectHeight - h1 : 0.0;
