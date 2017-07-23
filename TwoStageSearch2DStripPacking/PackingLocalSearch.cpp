@@ -36,7 +36,7 @@ void PackingLocalSearch::singleSearch(PackingList & result, std::vector<PackingL
                 if (std::chrono::steady_clock::now() - m_beginTime >= m_maxRunTime)
                 {
                     out.clear();
-                    out.push_back(heuristicPacking(curSearchList));
+                    out.push_back(m_bestPacking);
                     result = m_bestPacking;
                     return;
                 }
@@ -62,6 +62,6 @@ void PackingLocalSearch::singleSearch(PackingList & result, std::vector<PackingL
     }
 
     out.clear();
-    out.push_back(heuristicPacking(curSearchList));
+    out.push_back(m_bestPacking);
     result = m_bestPacking;
 }

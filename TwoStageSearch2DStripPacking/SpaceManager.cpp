@@ -191,6 +191,7 @@ Assign SpaceManager::pack(int index, const Rectangle * const rectangle)
 		{
 			// ·ÅÔÚ×ó²à
             if (std::bernoulli_distribution(0.5)(eg))
+            // if (h1 == 0 || (h2 != 0 && std::abs(h1 - rectHeight) < std::abs(h2 - rectHeight)))
             {
 				if (left != nullptr)
 				{
