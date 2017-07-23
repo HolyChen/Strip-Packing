@@ -3,7 +3,7 @@
 from pathlib import Path
 import os
 
-benchMarkPathName = r'D:\DataOfISH\Other'
+benchMarkPathName = r'D:\DataOfISH\Other' 
 outPutPathName = r'D:\Result\Others\Result'
 statisticOutPathName = r'D:\Result\Others\Result\statistic\result.txt'
 programPathName = r'.\x64\Release\TwoStageSearch2DStripPacking.exe'
